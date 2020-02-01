@@ -21,7 +21,6 @@ import sqlite3
 import multiprocessing as mp
 from copy import copy
 
-
 """Parse the command line arguments
 """
 companies_file_location = ''
@@ -34,7 +33,7 @@ parser.add_argument('--company')
 parser.add_argument('--companies_list')
 parser.add_argument('--filings')
 parser.add_argument('--documents')
-parser.add_argument('--start')      #TODO: possibly inactive, consider removing
+parser.add_argument('--start')  # TODO: possibly inactive, consider removing
 parser.add_argument('--end')
 parser.add_argument('--report_period')
 parser.add_argument('--batch_signature')
@@ -60,26 +59,26 @@ else:
         companies_file_location = os.path.join(project_dir, 'companies_list.txt')
 
 args.filings = args.filings or \
-    input('Enter filings search text (default: 10-K,10-Q): ') or \
-    '10-K,10-Q'
-args.filings = re.split(',', args.filings)          # ['10-K','10-Q']
+               input('Enter filings search text (default: 10-K,10-Q): ') or \
+               '10-K,10-Q'
+args.filings = re.split(',', args.filings)  # ['10-K','10-Q']
 
 if '10-K' in args.filings:
     search_window_days = 365
 else:
     search_window_days = 91
 ccyymmdd_default_start = (datetime.datetime.now() - datetime.timedelta(days=
-                      search_window_days)).strftime('%Y%m%d')
+                                                                       search_window_days)).strftime('%Y%m%d')
 args.start = int(args.start or \
-    input('Enter start date for filings search (default: ' +
-          ccyymmdd_default_start + '): ') or \
-             ccyymmdd_default_start)
+                 input('Enter start date for filings search (default: ' +
+                       ccyymmdd_default_start + '): ') or \
+                 ccyymmdd_default_start)
 ccyymmdd_default_end = (datetime.datetime.strptime(str(args.start), '%Y%m%d') +
                         datetime.timedelta(days=search_window_days)).strftime('%Y%m%d')
 args.end = int(args.end or \
-    input('Enter end date for filings search (default: ' +
-          ccyymmdd_default_end + '): ') or \
-            ccyymmdd_default_end)
+               input('Enter end date for filings search (default: ' +
+                     ccyymmdd_default_end + '): ') or \
+               ccyymmdd_default_end)
 if str(args.report_period).lower() == 'all':
     date_search_string = '.*'
 else:
@@ -87,7 +86,6 @@ else:
         args.report_period or
         input('Enter filing report period ccyy, ccyymm etc. (default: all periods): ') or
         '.*')
-
 
 """Set up the metadata database
 """
@@ -136,13 +134,12 @@ if args.write_sql:
         insert into metadata (batch_number, batch_signature,
         batch_start_time, sec_cik) values
         """ + " ('" + "', '".join([str(batch_number),
-                           str(args.batch_signature or ''),
-                           str(batch_start_time)[:-3],  # take only 3dp microseconds
-                           'dummy_cik_code']) + "')")
+                                   str(args.batch_signature or ''),
+                                   str(batch_start_time)[:-3],  # take only 3dp microseconds
+                                   'dummy_cik_code']) + "')")
     sql_connection.commit()
 else:
     batch_number = 0
-
 
 """Set up numbered storage sub-directory for the current batch run
 """
@@ -157,9 +154,6 @@ if os.path.exists(storage_toplevel_directory):
     shutil.rmtree(storage_toplevel_directory)
 os.makedirs(storage_toplevel_directory)
 
-
-
-
 """Set up logging
 """
 # log_file_name = 'sec_extractor_{0}.log'.format(ts)
@@ -168,7 +162,8 @@ log_path = path.join(args.storage, log_file_name)
 
 logger = logging.getLogger('text_analysis')
 # # set up the logger if it hasn't already been set up earlier in the execution run
-logger.setLevel(logging.DEBUG)  # we have to initialise this top-level setting otherwise everything defaults to logging.WARN level
+logger.setLevel(
+    logging.DEBUG)  # we have to initialise this top-level setting otherwise everything defaults to logging.WARN level
 formatter = logging.Formatter('%(asctime)s %(levelname)s %(message)s',
                               '%Y%m%d %H:%M:%S')
 
@@ -184,7 +179,6 @@ console_handler.setLevel(logging.DEBUG)
 console_handler.set_name('my_console_handler')
 logger.addHandler(console_handler)
 
-
 ts = time.time()
 logger.info('=' * 65)
 logger.info('Analysis started at {0}'.
@@ -197,7 +191,6 @@ logger.info('=' * 65)
 if args.write_sql:
     logger.info('Opened SQL connection: %s', db_location)
 
-
 if not args.traffic_limit_pause_ms:
     # default pause after HTTP request: zero milliseconds
     args.traffic_limit_pause_ms = 0
@@ -206,33 +199,31 @@ else:
 logger.info('Traffic Limit Pause (ms): %s' %
             str(args.traffic_limit_pause_ms))
 
-
 if args.multiprocessing_cores:
-    args.multiprocessing_cores = min(mp.cpu_count()-1,
+    args.multiprocessing_cores = min(mp.cpu_count() - 1,
                                      int(args.multiprocessing_cores))
 else:
     args.multiprocessing_cores = 0
 
-
 """Create search_terms_regex, which stores the patterns that we
 use for identifying sections in each of EDGAR documents types
 """
-with open (path.join(project_dir, 'document_group_section_search.json'), 'r') as \
+with open(path.join(project_dir, 'document_group_section_search.json'), 'r') as \
         f:
     json_text = f.read()
     search_terms = json.loads(json_text)
     if not search_terms:
         logger.error('Search terms file is missing or corrupted: ' +
-              f.name)
+                     f.name)
 search_terms_regex = copy(search_terms)
 for filing in search_terms:
     for idx, section in enumerate(search_terms[filing]):
-        for format in ['txt','html']:
+        for format in ['txt', 'html']:
             for idx2, pattern in enumerate(search_terms[filing][idx][format]):
-                for startend in ['start','end']:
+                for startend in ['start', 'end']:
                     regex_string = search_terms[filing][idx][format] \
                         [idx2][startend]
-                    regex_string = regex_string.replace('_','\\s{,5}')
+                    regex_string = regex_string.replace('_', '\\s{,5}')
                     regex_string = regex_string.replace('\n', '\\n')
                     search_terms_regex[filing][idx][format] \
                         [idx2][startend] = regex_string
@@ -240,7 +231,7 @@ for filing in search_terms:
  argument given, then default to all of the document types listed in the
  JSON file"""
 args.documents = args.documents or ','.join(list(search_terms.keys()))
-args.documents = re.split(',', args.documents)          # ['10-K','10-Q']
+args.documents = re.split(',', args.documents)  # ['10-K','10-Q']
 
 
 def requests_get(url, params=None):
@@ -257,13 +248,13 @@ def requests_get(url, params=None):
         try:
             # to test the timeout functionality, try loading this page:
             # http://httpstat.us/200?sleep=20000  (20 seconds delay before page loads)
-            r = requests.get(url, params=params, timeout = 10)
+            r = requests.get(url, params=params, timeout=10)
             success = True
             # facility to add a pause to respect SEC EDGAR traffic limit
             # https://www.sec.gov/privacy.htm#security
-            time.sleep(args.traffic_limit_pause_ms/1000)
+            time.sleep(args.traffic_limit_pause_ms / 1000)
         except requests.exceptions.RequestException as e:
-            wait = (retries ^3) * 20 + random.randint(1,5)
+            wait = (retries ^ 3) * 20 + random.randint(1, 5)
             logger.warning(e)
             logger.info('URL: %s' % url)
             logger.info(
@@ -276,7 +267,3 @@ def requests_get(url, params=None):
         sys.exit('Download repeatedly failed: %s' %
                  url)
     return r
-
-
-
-

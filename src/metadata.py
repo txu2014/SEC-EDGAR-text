@@ -62,14 +62,14 @@ class Metadata(object):
                     attempts += 1
                     logger.warning('No valid index page, attempt %i: %s'
                                    % (attempts, index_url))
-                    time.sleep(attempts*10 + random.randint(1,5))
+                    time.sleep(attempts * 10 + random.randint(1, 5))
 
             index_metadata['formHeader'] = form_type
             infoheads = soup.find_all('div', class_='infoHead')
             for i in infoheads:
                 j = i.next_element
                 while not (isinstance(j, Tag)) or not ('info') in \
-                        j.attrs['class']:
+                                                      j.attrs['class']:
                     j = j.next_element
                 # remove colons, spaces, hyphens from dates/times
                 if type(j.string) is NavigableString:
@@ -129,7 +129,6 @@ class Metadata(object):
             json_output.write(bytes(excerpt_as_json, "utf-8").
                               decode("unicode_escape"))
 
-
     def save_to_db(self):
         """Append metadata to sqlite database
 
@@ -161,24 +160,24 @@ class Metadata(object):
             end_line,
             time_elapsed) VALUES
             """ + "('" + "', '".join([str(self.batch_number),
-                       str(self.batch_signature),
-                       str(self.batch_start_time)[:-3],  # take only 3dp microseconds
-                       self.batch_machine_id,
-                       self.sec_cik,
-                       re.sub("[\'\"]","", self.company_description).strip(),
-                       re.sub("[\'\"]","", self.sec_company_name).strip(),
-                       self.sec_form_header, self.sec_period_of_report,
-                       self.sec_filing_date,
-                       self.sec_index_url, self.sec_url,
-                       self.metadata_file_name, self.document_group,
-                       self.section_name, str(self.section_n_characters),
-                       str(self.section_end_time)[:-3],
-                       self.extraction_method,
-                       str(self.output_file),
-                       re.sub("[\'\"]","", self.endpoints[0]).strip()[0:200],
-                       re.sub("[\'\"]","", self.endpoints[1]).strip()[0:200],
-                       str(self.time_elapsed)]) + "')"
-        sql_insert = sql_insert.replace("'None'","NULL")
+                                      str(self.batch_signature),
+                                      str(self.batch_start_time)[:-3],  # take only 3dp microseconds
+                                      self.batch_machine_id,
+                                      self.sec_cik,
+                                      re.sub("[\'\"]", "", self.company_description).strip(),
+                                      re.sub("[\'\"]", "", self.sec_company_name).strip(),
+                                      self.sec_form_header, self.sec_period_of_report,
+                                      self.sec_filing_date,
+                                      self.sec_index_url, self.sec_url,
+                                      self.metadata_file_name, self.document_group,
+                                      self.section_name, str(self.section_n_characters),
+                                      str(self.section_end_time)[:-3],
+                                      self.extraction_method,
+                                      str(self.output_file),
+                                      re.sub("[\'\"]", "", self.endpoints[0]).strip()[0:200],
+                                      re.sub("[\'\"]", "", self.endpoints[1]).strip()[0:200],
+                                      str(self.time_elapsed)]) + "')"
+        sql_insert = sql_insert.replace("'None'", "NULL")
         sql_cursor.execute(sql_insert)
         sql_connection.commit()
 
@@ -221,4 +220,3 @@ def load_from_json(file_path):
             logger.info('Could not load corrupted JSON file: ' + file_path)
 
     return metadata
-

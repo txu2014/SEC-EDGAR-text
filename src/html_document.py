@@ -15,6 +15,7 @@ from .document import Document
 
 USE_HTML2TEXT = False
 
+
 class HtmlDocument(Document):
     soup = None
     plaintext = None
@@ -51,12 +52,12 @@ class HtmlDocument(Document):
         try:
             soup = BeautifulSoup(html_text, 'lxml')
         except:
-            soup = BeautifulSoup(html_text, 'html.parser')      # default parser
+            soup = BeautifulSoup(html_text, 'html.parser')  # default parser
         parsing_time_elapsed = time.clock() - start_time
         log_str = 'parsing time: ' + '% 3.2f' % \
-                     (parsing_time_elapsed) + 's; ' + "{:,}". \
-                     format(len(html_text)) + ' characters; ' + "{:,}". \
-                     format(len(soup.find_all())) + ' HTML elements'
+                  (parsing_time_elapsed) + 's; ' + "{:,}". \
+                      format(len(html_text)) + ' characters; ' + "{:,}". \
+                      format(len(soup.find_all())) + ' HTML elements'
         self.log_cache.append(('DEBUG', log_str))
 
         # for some old, simplistic documents lacking a proper HTML tree,
@@ -87,7 +88,8 @@ class HtmlDocument(Document):
             import html2text
             h = html2text.HTML2Text(bodywidth=0)
             h.ignore_emphasis = True
-            self.plaintext = h.handle(str(soup)) # use soup instead of the original html: it's faster and it benefits from the tables being excluded
+            self.plaintext = h.handle(str(
+                soup))  # use soup instead of the original html: it's faster and it benefits from the tables being excluded
         else:
             # paragraphs_analysis = []
             # p_idx = 0
@@ -127,7 +129,6 @@ class HtmlDocument(Document):
             document_string = re.sub('\n{3,}', '\n\n', document_string)
             self.plaintext = document_string
 
-
     def extract_section(self, search_pairs):
         """
 
@@ -145,7 +146,7 @@ class HtmlDocument(Document):
             # so that we always return just one object, not a tuple of groups
             # st = super().search_terms_pattern_to_regex()
             # st = Reader.search_terms_pattern_to_regex(st)
-            item_search = re.findall(st['start']+'.*?'+ st['end'],
+            item_search = re.findall(st['start'] + '.*?' + st['end'],
                                      self.plaintext,
                                      re.DOTALL | re.IGNORECASE)
             # item_search = re.findall('(' + st['start']+'.*?'+ st['end']+')',
@@ -158,7 +159,7 @@ class HtmlDocument(Document):
                         # If incorrect use of multiple regex groups has caused
                         # more than one match, then s is returned as a tuple
                         self.log_cache.append(('ERROR',
-                                   "Groups found in Regex, please correct"))
+                                               "Groups found in Regex, please correct"))
                     if len(s) > longest_text_length:
                         text_extract = s.strip()
                         longest_text_length = len(s)
@@ -176,7 +177,6 @@ class HtmlDocument(Document):
                                   text_extract, flags=re.IGNORECASE)
 
         return text_extract, extraction_summary, start_text, end_text, warnings
-
 
     def should_remove_table(self, html):
         """Decide whether <table> html contains a mostly-numeric table.
@@ -198,7 +198,6 @@ class HtmlDocument(Document):
                                    "the should_remove_table function is broken"))
 
 
-
 def is_line_break(e):
     """Is e likely to function as a line break when document is rendered?
 
@@ -207,7 +206,6 @@ def is_line_break(e):
     on the page if they are enclosed inside other elements, notably a
     table cell
     """
-
 
     is_block_tag = e.name != None and e.name in ['p', 'div', 'br', 'hr', 'tr',
                                                  'table', 'form', 'h1', 'h2',
@@ -226,4 +224,3 @@ def is_line_break(e):
     else:
         is_block_style = False
     return is_block_tag or is_block_style
-

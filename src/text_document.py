@@ -56,6 +56,7 @@ class TextDocument(Document):
             extraction_summary = self.extraction_method + '_document: failed'
         return text_extract, extraction_summary, start_text, end_text, warnings
 
+
 def remove_table_lines(input_text):
     """Replace lines believed to be part of numeric tables with a placeholder.
 

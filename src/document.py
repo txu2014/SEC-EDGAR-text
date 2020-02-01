@@ -15,6 +15,7 @@ import multiprocessing as mp
 from .utils import search_terms as master_search_terms
 from .utils import args, logger
 
+
 class Document(object):
     __metaclass__ = ABCMeta
 
@@ -69,7 +70,7 @@ class Document(object):
                           newline='\n') as txt_output:
                     txt_output.write(text_extract)
                 log_str = ': '.join(['SUCCESS Saved file for',
-                                         section_name, txt_output_path])
+                                     section_name, txt_output_path])
                 self.log_cache.append(('DEBUG', log_str))
                 try:
                     os.remove(failure_metadata_output_path)
@@ -80,7 +81,7 @@ class Document(object):
                 metadata.save_to_json(metadata_path)
             else:
                 log_str = ': '.join(['No excerpt located for ',
-                                         section_name, metadata.sec_index_url])
+                                     section_name, metadata.sec_index_url])
                 self.log_cache.append(('WARNING', log_str))
                 try:
                     os.remove(metadata_path)
@@ -90,9 +91,8 @@ class Document(object):
                 metadata.save_to_json(failure_metadata_output_path)
             if args.write_sql:
                 metadata.save_to_db()
-        return(self.log_cache)
+        return (self.log_cache)
 
     def prepare_text(self):
         # handled in child classes
         pass
-

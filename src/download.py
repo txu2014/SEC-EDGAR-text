@@ -51,12 +51,12 @@ class EdgarCrawler(object):
 
         is_multiprocessing = args.multiprocessing_cores > 0
         if is_multiprocessing:
-            pool = mp.Pool(processes = args.multiprocessing_cores)
+            pool = mp.Pool(processes=args.multiprocessing_cores)
 
         for i, index_url in enumerate(filings_links):
             # Get the URL for the (text-format) document which packages all
             # of the parts of the filing
-            base_url = re.sub('-index.htm.?','',index_url) + ".txt"
+            base_url = re.sub('-index.htm.?', '', index_url) + ".txt"
             filings_list.append([index_url, base_url, company_description])
             filing_metadata = Metadata(index_url)
 
@@ -80,25 +80,22 @@ class EdgarCrawler(object):
         logger.debug("Finished attempting to download all the %s forms for %s",
                      filing_search_string, company_description)
 
-
     def process_log_cache(self, log_cache):
         """Output log_cache messages via logger
         """
         for msg in log_cache:
             msg_type = msg[0]
             msg_text = msg[1]
-            if msg_type=='process_name':
+            if msg_type == 'process_name':
                 id = '(' + msg_text + ') '
-            elif msg_type=='INFO':
+            elif msg_type == 'INFO':
                 logger.info(id + msg_text)
-            elif msg_type=='DEBUG':
+            elif msg_type == 'DEBUG':
                 logger.debug(id + msg_text)
-            elif msg_type=='WARNING':
+            elif msg_type == 'WARNING':
                 logger.warning(id + msg_text)
-            elif msg_type=='ERROR':
+            elif msg_type == 'ERROR':
                 logger.error(id + msg_text)
-
-
 
     def download_filings_links(self, edgar_search_string, company_description,
                                filing_search_string, date_search_string,
@@ -142,13 +139,13 @@ class EdgarCrawler(object):
             for link in soup.find_all('a', {'id': 'documentsbutton'}):
                 URL = sec_website + link['href']
                 linkList.append(URL)
-            continuation_tag = soup.find('input', {'value': 'Next ' + str(count)}) # a button labelled 'Next 100' for example
+            continuation_tag = soup.find('input',
+                                         {'value': 'Next ' + str(count)})  # a button labelled 'Next 100' for example
             if continuation_tag:
                 continuation_string = continuation_tag['onclick']
                 browse_url = sec_website + re.findall('cgi-bin.*count=\d*', continuation_string)[0]
                 requests_params = None
         return linkList
-
 
     def download_filing(self, filing_metadata, do_save_full_document):
         """
@@ -163,10 +160,10 @@ class EdgarCrawler(object):
         filing_url = filing_metadata.sec_url
         company_description = filing_metadata.company_description
         log_str = "Retrieving: %s, %s, period: %s, index page: %s" \
-            % (filing_metadata.sec_company_name,
-                    filing_metadata.sec_form_header,
-                    filing_metadata.sec_period_of_report,
-                    filing_metadata.sec_index_url)
+                  % (filing_metadata.sec_company_name,
+                     filing_metadata.sec_form_header,
+                     filing_metadata.sec_period_of_report,
+                     filing_metadata.sec_index_url)
         log_cache.append(('DEBUG', log_str))
 
         r = requests_get(filing_url)
@@ -196,16 +193,16 @@ class EdgarCrawler(object):
                 if type_search:
                     document_type = re.sub("^(?i)<TYPE>", "", type_search.group())
                     document_type = re.sub(r"(-|/|\.)", "",
-                                         document_type)  # remove hyphens etc
+                                           document_type)  # remove hyphens etc
                 else:
                     document_type = "document_TYPE_not_tagged"
                     log_cache.append(('ERROR',
                                       "form <TYPE> not given in form?: " +
                                       filing_url))
                 local_path = os.path.join(self.storage_folder,
-                        company_description + '_' + \
-                        filing_metadata.sec_cik + "_" + document_type + "_" + \
-                        filing_metadata.sec_period_of_report)
+                                          company_description + '_' + \
+                                          filing_metadata.sec_cik + "_" + document_type + "_" + \
+                                          filing_metadata.sec_period_of_report)
                 doc_metadata.document_type = document_type
                 # doc_metadata.form_type_internal = form_string
                 doc_metadata.document_group = document_group
@@ -247,7 +244,7 @@ class EdgarCrawler(object):
                 doc_metadata.original_file_size = str(len(doc_text)) + ' chars'
                 sections_log_items = reader_class(
                     doc_metadata.original_file_name,
-                    doc_text, doc_metadata.extraction_method).\
+                    doc_text, doc_metadata.extraction_method). \
                     get_excerpt(doc_text, document_group,
                                 doc_metadata,
                                 skip_existing_excerpts=False)
@@ -256,13 +253,10 @@ class EdgarCrawler(object):
                     with open(main_path, "w") as filename:
                         filename.write(doc_text)
                     log_str = "Saved file: " + main_path + ', ' + \
-                        str(round(os.path.getsize(main_path) / 1024)) + ' KB'
+                              str(round(os.path.getsize(main_path) / 1024)) + ' KB'
                     log_cache.append(('DEBUG', log_str))
                     filing_metadata.original_file_name = main_path
                 else:
                     filing_metadata.original_file_name = \
                         "file was not saved locally"
-        return(log_cache)
-
-
-
+        return (log_cache)
